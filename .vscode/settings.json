@@ -1,0 +1,5 @@
+{
+    "python.pythonPath": "/home/john/.virtualenvs/investFundamentals/bin/python",
+
+    "code-runner.executorMap": {"python": "/home/john/.virtualenvs/investFundamentals/bin/python"}
+}
