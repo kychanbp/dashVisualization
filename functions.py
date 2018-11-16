@@ -8,13 +8,26 @@ from statsmodels import regression
 import statsmodels.api as sm
 import math
 import numpy as np
-#import pymongo
+import pymongo
 
 def getPrices(collection, symbol, start, end, field):
     query = [
         {"$match":{"Ticker":symbol}},
         {"$match":{"date":{"$lte": datetime.strptime(end, '%Y-%m-%d'), "$gte": datetime.strptime(start, '%Y-%m-%d')}}},
         {"$project":{"_id" : 0, "Ticker":"$Ticker", "date":"$date", "{}".format(field):"${}".format(field)}}
+    ]
+
+    cursor = collection.aggregate(query)
+    df = pd.DataFrame(list(cursor))
+    df.set_index("Ticker", inplace = True)
+
+    return df
+
+def getPrices_all(collection, symbol, start, end):
+    query = [
+        {"$match":{"Ticker":symbol}},
+        {"$match":{"date":{"$lte": datetime.strptime(end, '%Y-%m-%d'), "$gte": datetime.strptime(start, '%Y-%m-%d')}}},
+        #{"$project":{"_id" : 0, "Ticker":"$Ticker", "date":"$date"}}
     ]
 
     cursor = collection.aggregate(query)
@@ -63,10 +76,24 @@ def getItems(collection, symbol, start, end, period, statm, code):
     df.sort_values('Date', inplace = True)
     return df[-5:]
 
+def getRatios(collection, symbol, start, end, ratio):
+    query = [
+        {"$match":{"Ticker":symbol}},
+        {"$match":{"date":{"$lte": datetime.strptime(end, '%Y-%m-%d'), "$gte": datetime.strptime(start, '%Y-%m-%d')}}},
+        {"$project":{"Ticker":1, "date":1, ratio:1}}
+    ]
+
+    cursor = collection.aggregate(query)
+    df = pd.DataFrame(list(cursor))
+    df.set_index('Ticker', inplace = True)
+    df.sort_values('date', inplace = True)
+
+    return df
+
 """
 client = pymongo.MongoClient()
 db = client.Invest
-collection = db['FinancialStatement']
+collection = db['DailyPrice']
 
-print(getItems(collection, "AAPL", "2010-01-01", "2018-12-31", "Annual", "BAL", "LTLL"))
+print(getPrices_all(collection, "GE", "2018-01-01", "2018-12-31"))
 """
