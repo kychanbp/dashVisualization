@@ -16,6 +16,10 @@ from datetime import timedelta
 
 import functions as func
 
+import colorlover as cl
+
+colorscale = cl.scales['9']['qual']['Paired']
+
 def charts():
     data = [go.Bar(
         x=['giraffes', 'orangutans', 'monkeys'],
@@ -28,6 +32,7 @@ client = pymongo.MongoClient()
 db = client.Invest
 collection_price = db['DailyPrice']
 collection_fs = db['FinancialStatement']
+collection_ratios = db['KeyRatios']
 
 #get distinct ticker
 tickers = collection_price.distinct('Ticker')
@@ -37,7 +42,7 @@ tickers.sort()
 codes_BAL = func.getCodes(collection_fs, "Annual", "BAL")
 codes_INC = func.getCodes(collection_fs, "Annual", "INC")
 codes_CAS = func.getCodes(collection_fs, "Annual", "CAS")
-codes_ratios = ["DY", "PY", "ROE", "PD"]
+codes_ratios = ["DY", "EY", "ROE", "PD"]
 
 dt = datetime.now()
 
@@ -72,13 +77,13 @@ app.layout = html.Div([
         children = [
             html.Div(
                 id = "QQ Plot",
-                className="five columns",
+                className="six columns",
                 children = [dcc.Graph(id = 'QQ Plot figure')]
             ),
             
             html.Div(
                 id = "Beta",
-                className="five columns",
+                className="six columns",
                 children = [dcc.Graph(id = 'Beta figure')]
             )       
         ]
@@ -88,35 +93,56 @@ app.layout = html.Div([
         className = "row",
         children = [
             html.H2("Key Figures"),
-            html.Div(
-                className="three columns",
-                children = html.Div([
-                    dcc.Dropdown(
-                        id='BAL',
-                        options=[{'label': s[0], 'value': str(s[1])}for s in zip(codes_BAL["Description"].tolist(), codes_BAL["Code"].tolist())],
-                        value="AAPL",
-                        multi=False
-                        ),
+            
                     ]
-                )
-            )
-        ]
     ),
 
-    #row2
+    #dropdown
     html.Div(
         className = "row",
         children = [
             html.Div(
                 className="three columns",
                 children = html.Div([
-                    dcc.Graph(id = 'ratio1'),
-                    ]
-                )
+                    dcc.Dropdown(
+                        id='BAL',
+                        options=[{'label': s[0], 'value': str(s[1])}for s in zip(codes_BAL["Description"].tolist(), codes_BAL["Code"].tolist())],
+                        value="ATCA",
+                        multi=False
+                        )
+                    ])
+            ),
+            
+            html.Div(className="three columns", children=html.Div([html.H2("")])),
+
+            html.Div(
+                className="three columns",
+                children = html.Div([
+                    dcc.Dropdown(
+                        id='INC',
+                        options=[{'label': s[0], 'value': str(s[1])}for s in zip(codes_INC["Description"].tolist(), codes_INC["Code"].tolist())],
+                        value="SOPI",
+                        multi=False
+                        )
+                    ])
+            ),
+        ]
+    ),
+    
+        
+    #row3 (plots)
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(
+                className="three columns",
+                children = [
+                    html.Div([dcc.Graph(id = 'ratio1'),])
+                ]
             ),
 
             html.Div(
-                className="two columns",
+                className="three columns",
                 children = html.Div([
                     dcc.Graph(id = 'ratio1_box'),
                     ]
@@ -129,10 +155,10 @@ app.layout = html.Div([
                         dcc.Graph(id = 'ratio2'),
                         ]
                     )
-                ),
+            ),
             
             html.Div(
-                className="two columns",
+                className="three columns",
                 children = html.Div([
                     dcc.Graph(id = 'ratio2_box'),
                     ]
@@ -142,25 +168,53 @@ app.layout = html.Div([
         ]
     ),
 
-    #row3
+    #dropdown
     html.Div(
         className = "row",
         children = [
-            html.H2(""),
             html.Div(
                 className="three columns",
                 children = html.Div([
-                    html.H3("ROE"),
-                    dcc.Graph(id = 'figure5', figure = charts()),
-                    ]
-                )
+                    dcc.Dropdown(
+                        id='CAS',
+                        options=[{'label': s[0], 'value': str(s[1])}for s in zip(codes_CAS["Description"].tolist(), codes_CAS["Code"].tolist())],
+                        value="OTLO",
+                        multi=False
+                        )
+                    ])
+            ),
+            
+            html.Div(className="three columns", children=html.Div([html.H2("")])),
+
+            html.Div(
+                className="three columns",
+                children = html.Div([
+                    dcc.Dropdown(
+                        id='Key Ratios',
+                        options=[{'label': s[0], 'value': str(s[1])}for s in zip(codes_ratios, codes_ratios)],
+                        value="PD",
+                        multi=False
+                        )
+                    ])
+            ),
+        ]
+    ),
+
+     #row3 (plots)
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(
+                className="three columns",
+                children = [
+                    html.Div([dcc.Graph(id = 'ratio3'),])
+                ]
             ),
 
             html.Div(
-                className="two columns",
+                className="three columns",
                 children = html.Div([
-                    html.H3("ROE"),
-                    dcc.Graph(id = 'box3', figure = charts()),
+                    dcc.Graph(id = 'ratio3_box'),
                     ]
                 )
             ),
@@ -168,20 +222,18 @@ app.layout = html.Div([
             html.Div(
                     className="three columns",
                     children = html.Div([
-                        html.H3("PD"),
-                        dcc.Graph(id = 'figure6', figure = charts()),
+                        dcc.Graph(id = 'ratio4'),
                         ]
                     )
-                ),
-
+            ),
+            
             html.Div(
-                className="two columns",
+                className="three columns",
                 children = html.Div([
-                    html.H3("ROE"),
-                    dcc.Graph(id = 'box4', figure = charts()),
+                    dcc.Graph(id = 'ratio4_box'),
                     ]
                 )
-            )
+            ),
             
         ]
     ),
@@ -210,7 +262,7 @@ app.layout = html.Div([
                 className="twlve columns",
                 children = html.Div([
                     html.H2("Historical Price"),
-                    dcc.Graph(id = 'HP', figure = charts()),
+                    dcc.Graph(id = 'HP'),
                     ]
                 )
             )
@@ -333,7 +385,7 @@ def ratio1_box_graph(ticker, code, start_date, end_date):
     if start_date is not None and end_date is not None:
         data= func.getItems(collection_fs, ticker, start_date, end_date, "Annual", "BAL", code)
         try:
-            box = go.Box(y=data[code].tolist())
+            box = go.Box(y=data[code].tolist(), boxmean='sd')
 
             data = [box]
 
@@ -345,5 +397,189 @@ def ratio1_box_graph(ticker, code, start_date, end_date):
         fig = {}
     return fig
 
+@app.callback(
+    dash.dependencies.Output("ratio2",'figure'),
+    [dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('INC', 'value'),
+    dash.dependencies.Input('my-date-picker-range', 'start_date'),
+    dash.dependencies.Input('my-date-picker-range', 'end_date')])
+def ratio2_graph(ticker, code, start_date, end_date):
+    if start_date is not None and end_date is not None:
+        data= func.getItems(collection_fs, ticker, start_date, end_date, "Annual", "INC", code)
+        try:
+            bar = go.Bar(x=data['Date'].tolist(),
+                        y=data[code].tolist(), 
+                        )
+
+            data = [bar]
+                
+
+            fig = dict(data=data)
+        except:
+            fig = {}
+        
+    else:
+        fig = {}
+    return fig
+
+@app.callback(
+    dash.dependencies.Output("ratio2_box",'figure'),
+    [dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('INC', 'value'),
+    dash.dependencies.Input('my-date-picker-range', 'start_date'),
+    dash.dependencies.Input('my-date-picker-range', 'end_date')])
+def ratio2_box_graph(ticker, code, start_date, end_date):
+    if start_date is not None and end_date is not None:
+        data= func.getItems(collection_fs, ticker, start_date, end_date, "Annual", "INC", code)
+        try:
+            box = go.Box(y=data[code].tolist(), boxmean='sd')
+
+            data = [box]
+
+            fig = dict(data=data)
+        except:
+            fig = {}
+        
+    else:
+        fig = {}
+    return fig
+
+@app.callback(
+    dash.dependencies.Output("ratio3",'figure'),
+    [dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('CAS', 'value'),
+    dash.dependencies.Input('my-date-picker-range', 'start_date'),
+    dash.dependencies.Input('my-date-picker-range', 'end_date')])
+def ratio3_graph(ticker, code, start_date, end_date):
+    if start_date is not None and end_date is not None:
+        data= func.getItems(collection_fs, ticker, start_date, end_date, "Annual", "CAS", code)
+        try:
+            bar = go.Bar(x=data['Date'].tolist(),
+                        y=data[code].tolist(), 
+                        )
+
+            data = [bar]
+                
+
+            fig = dict(data=data)
+        except:
+            fig = {}
+        
+    else:
+        fig = {}
+    return fig
+
+@app.callback(
+    dash.dependencies.Output("ratio3_box",'figure'),
+    [dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('CAS', 'value'),
+    dash.dependencies.Input('my-date-picker-range', 'start_date'),
+    dash.dependencies.Input('my-date-picker-range', 'end_date')])
+def ratio3_box_graph(ticker, code, start_date, end_date):
+    if start_date is not None and end_date is not None:
+        data= func.getItems(collection_fs, ticker, start_date, end_date, "Annual", "CAS", code)
+        try:
+            box = go.Box(y=data[code].tolist(), boxmean='sd')
+
+            data = [box]
+
+            fig = dict(data=data)
+        except:
+            fig = {}
+        
+    else:
+        fig = {}
+    return fig
+
+@app.callback(
+    dash.dependencies.Output("ratio4",'figure'),
+    [dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('Key Ratios', 'value'),
+    dash.dependencies.Input('my-date-picker-range', 'start_date'),
+    dash.dependencies.Input('my-date-picker-range', 'end_date')])
+def ratio4_graph(ticker, code, start_date, end_date):
+    if start_date is not None and end_date is not None:
+        try:
+            data= func.getRatios(collection_ratios, ticker, start_date, end_date, code)
+            bar = go.Bar(x=data['date'].tolist(),
+                        y=data[code].tolist(), 
+                        )
+
+            data = [bar]
+                
+
+            fig = dict(data=data)
+        except:
+            fig = {}
+        
+    else:
+        fig = {}
+    return fig
+
+@app.callback(
+    dash.dependencies.Output("ratio4_box",'figure'),
+    [dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('Key Ratios', 'value'),
+    dash.dependencies.Input('my-date-picker-range', 'start_date'),
+    dash.dependencies.Input('my-date-picker-range', 'end_date')])
+def ratio4_box_graph(ticker, code, start_date, end_date):
+    if start_date is not None and end_date is not None:
+        try:
+            data= func.getRatios(collection_ratios, ticker, start_date, end_date, code)
+            box = go.Box(y=data[code].tolist(), boxmean='sd')
+
+            data = [box]
+
+            fig = dict(data=data)
+        except:
+            fig = {}
+        
+    else:
+        fig = {}
+    return fig
+
+@app.callback(
+    dash.dependencies.Output('HP','figure'),
+    [dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('my-date-picker-range', 'start_date'),
+    dash.dependencies.Input('my-date-picker-range', 'end_date')])
+def historical_price(ticker, start_date, end_date):
+
+    dff = func.getPrices_all(collection_price, ticker, start_date, end_date)
+
+    candlestick = {
+        'x': dff['date'],
+        'open': dff['open'],
+        'high': dff['high'],
+        'low': dff['low'],
+        'close': dff['close'],
+        'type': 'candlestick',
+        'name': ticker,
+        'legendgroup': ticker,
+        'increasing': {'line': {'color': colorscale[0]}},
+        'decreasing': {'line': {'color': colorscale[1]}},
+        'yaxis' : 'y2'
+    }
+
+    Bar = {
+        'x': dff['date'],
+        'y': dff['volume'],
+        'type':'bar',
+        'name':ticker + ' volume'
+    }
+    
+    
+    data = [candlestick] + [Bar]
+    layout =  {
+            'margin': {'b': 0, 'r': 10, 'l': 60, 't': 0},
+            'legend': {'x': 0},
+            'yaxis' : {'domain' : [0, 0.2]},
+            'yaxis2' : {'domain':[0.2,0.8]}
+    }
+            
+    fig = dict(data=data, layout = layout)
+
+    return fig
+
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(host="0.0.0.0",  port = "8080", debug=True)
