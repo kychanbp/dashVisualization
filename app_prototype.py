@@ -33,10 +33,14 @@ db = client.Invest
 collection_price = db['DailyPrice']
 collection_fs = db['FinancialStatement']
 collection_ratios = db['KeyRatios']
+collection_portfolio = db['TargetPortfolio']
 
 #get distinct ticker
 tickers = collection_price.distinct('Ticker')
 tickers.sort()
+
+tickers_filtered = collection_portfolio.distinct('Ticker')
+tickers_filtered.sort()
 
 #get codes
 codes_BAL = func.getCodes(collection_fs, "Annual", "BAL")
@@ -45,6 +49,12 @@ codes_CAS = func.getCodes(collection_fs, "Annual", "CAS")
 codes_ratios = ["DY", "EY", "ROE", "PD"]
 
 dt = datetime.now()
+
+all_options = {
+    'All':[{'label': s[0], 'value': str(s[1])}for s in zip(tickers, tickers)]
+,
+    'Filtered': [{'label': s[0], 'value': str(s[1])}for s in zip(tickers_filtered, tickers_filtered)]
+}
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -55,9 +65,20 @@ app.layout = html.Div([
         className = "row",
         children = [
             html.H1("Dashboard"),
+
+            dcc.Checklist(
+                id='allOrFiltered',
+                options=[
+                    {'label': 'All', 'value': 'All'},
+                    {'label': 'Filtered', 'value': 'Filtered'},
+                ],
+                values=['All'],
+                labelStyle={'display': 'inline-block'},
+                ),
+
             dcc.Dropdown(
                 id='stock-ticker-input',
-                options=[{'label': s[0], 'value': str(s[1])}for s in zip(tickers, tickers)],
+                #options=[{'label': s[0], 'value': str(s[1])}for s in zip(tickers, tickers)],
                 value="AAPL",
                 multi=False
             ),
@@ -270,6 +291,17 @@ app.layout = html.Div([
         ]
     )
 ])
+
+@app.callback(
+    dash.dependencies.Output("stock-ticker-input",'options'),
+    [dash.dependencies.Input('allOrFiltered', 'values')])
+def update_dropdown(option):
+    opt = []
+    if option == ["All"]:
+        opt = [{'label': s[0], 'value': str(s[1])}for s in zip(tickers, tickers)]
+    elif option == ["Filtered"]:
+        opt = [{'label': s[0], 'value': str(s[1])}for s in zip(tickers_filtered, tickers_filtered)]
+    return opt
 
 @app.callback(
     dash.dependencies.Output("QQ Plot figure",'figure'),
