@@ -1,14 +1,12 @@
 import pandas as pd
 
 from datetime import datetime
-from datetime import timezone
-from datetime import timedelta
 
 from statsmodels import regression
 import statsmodels.api as sm
 import math
 import numpy as np
-import pymongo
+#import pymongo
 
 def getPrices(collection, symbol, start, end, field):
     query = [
