@@ -1,6 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_table
 import plotly.plotly as py
 import plotly.graph_objs as go
 
@@ -33,10 +34,14 @@ db = client.Invest
 collection_price = db['DailyPrice']
 collection_fs = db['FinancialStatement']
 collection_ratios = db['KeyRatios']
+collection_portfolio = db['TargetPortfolio']
 
 #get distinct ticker
 tickers = collection_price.distinct('Ticker')
 tickers.sort()
+
+tickers_filtered = collection_portfolio.distinct('Ticker')
+tickers_filtered.sort()
 
 #get codes
 codes_BAL = func.getCodes(collection_fs, "Annual", "BAL")
@@ -45,6 +50,12 @@ codes_CAS = func.getCodes(collection_fs, "Annual", "CAS")
 codes_ratios = ["DY", "EY", "ROE", "PD"]
 
 dt = datetime.now()
+
+all_options = {
+    'All':[{'label': s[0], 'value': str(s[1])}for s in zip(tickers, tickers)]
+,
+    'Filtered': [{'label': s[0], 'value': str(s[1])}for s in zip(tickers_filtered, tickers_filtered)]
+}
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -55,6 +66,17 @@ app.layout = html.Div([
         className = "row",
         children = [
             html.H1("Dashboard"),
+
+            dcc.RadioItems(
+                id='allOrFiltered',
+                options=[
+                    {'label': 'All', 'value': 'All'},
+                    {'label': 'Filtered', 'value': 'Filtered'},
+                ],
+                value='All',
+                labelStyle={'display': 'inline-block'},
+                ),
+            
             dcc.Dropdown(
                 id='stock-ticker-input',
                 options=[{'label': s[0], 'value': str(s[1])}for s in zip(tickers, tickers)],
@@ -238,7 +260,7 @@ app.layout = html.Div([
         ]
     ),
 
-    #row4
+    #heading
     html.Div(
         className = "row",
         children = [
@@ -246,7 +268,39 @@ app.layout = html.Div([
                 className="twlve columns",
                 children = html.Div([
                     html.H2("Financial Statement"),
-                    dcc.Graph(id = 'fs', figure = charts()),
+                    ]
+                )
+            )
+            
+        ]
+    ),
+
+#dropdown
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(
+                className="three columns",
+                children = html.Div([
+                    dcc.Dropdown(
+                        id='FS_dropdown',
+                        options=[{'label': s[0], 'value': str(s[1])}for s in zip(['BAL', 'INC', 'CAS'],['BAL', 'INC', 'CAS'])],
+                        value="CAS",
+                        multi=False
+                        )
+                    ])
+            ),
+        ]
+    ),
+
+#row4
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(
+                className="twlve columns",
+                children = html.Div([
+                    dash_table.DataTable(id = 'FS'),
                     ]
                 )
             )
@@ -270,6 +324,17 @@ app.layout = html.Div([
         ]
     )
 ])
+
+@app.callback(
+    dash.dependencies.Output("stock-ticker-input",'options'),
+    [dash.dependencies.Input('allOrFiltered', 'value')])
+def update_dropdown(option):
+    opt = []
+    if option == "All":
+        opt = [{'label': s[0], 'value': str(s[1])}for s in zip(tickers, tickers)]
+    elif option == "Filtered":
+        opt = [{'label': s[0], 'value': str(s[1])}for s in zip(tickers_filtered, tickers_filtered)]
+    return opt
 
 @app.callback(
     dash.dependencies.Output("QQ Plot figure",'figure'),
@@ -537,6 +602,24 @@ def ratio4_box_graph(ticker, code, start_date, end_date):
     else:
         fig = {}
     return fig
+
+@app.callback(
+    dash.dependencies.Output("FS",'columns'),
+    [dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('FS_dropdown', 'value')])
+def update_fs_columns(ticker, statm):
+    df = func.getStatements(collection_fs, ticker, '', '', 'Annual', statm)
+    columns=[{"name": i, "id": i} for i in df.columns]
+    return columns
+
+@app.callback(
+    dash.dependencies.Output("FS",'data'),
+    [dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('FS_dropdown', 'value')])
+def update_fs_rows(ticker, statm):
+    df = func.getStatements(collection_fs, ticker, '', '', 'Annual', statm)
+    data=df.to_dict('records')
+    return data
 
 @app.callback(
     dash.dependencies.Output('HP','figure'),

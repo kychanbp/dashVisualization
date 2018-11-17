@@ -90,10 +90,36 @@ def getRatios(collection, symbol, start, end, ratio):
 
     return df
 
+def getStatements(collection, symbol, start, end, period, statm):
+    codes = getCodes(collection, period, statm)
+    df = pd.DataFrame()
+    for index, row in codes.iterrows():
+        item = getItems(collection, symbol, start, end, period ,statm, row['Code'])
+        item['Date'] = item['Date'].apply(str)
+        try:
+            if len(item.columns) == 2:
+                df = pd.merge(df, item, on='Date')
+        except:
+            if len(item.columns) == 2:
+                df = item
+    
+    df.set_index('Date',  inplace=True)
+    df = df.T
+    df.index.names = ['Code']
+    df.reset_index(inplace=True)
+    df = pd.merge(df, codes, on='Code')
+    df.set_index('Code',  inplace=True)
+    df.sort_index(inplace=True)
+    cols = df.columns.tolist()
+    cols = cols[-1:] + cols[:-1]
+    df = df[cols]
+    return df
+
 """
 client = pymongo.MongoClient()
 db = client.Invest
-collection = db['DailyPrice']
+collection = db['FinancialStatement']
 
-print(getPrices_all(collection, "GE", "2018-01-01", "2018-12-31"))
+print(getStatements(collection, "GE", "", "", "Annual", "BAL").to_dict('records'))
+#print(getCodes(collection,"Annual", "BAL"))
 """
