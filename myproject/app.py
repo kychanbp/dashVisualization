@@ -10,7 +10,7 @@ from datetime import date
 from datetime import timezone
 from datetime import timedelta
 
-import functions as func
+import myproject.functions as func
 
 #connect  to database
 client = pymongo.MongoClient()

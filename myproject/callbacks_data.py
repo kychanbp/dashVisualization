@@ -14,7 +14,7 @@ from scipy import stats
 import pymongo
 from datetime import date
 
-import functions as func
+import myproject.functions as func
 
 import colorlover as cl
 
