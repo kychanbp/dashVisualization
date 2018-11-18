@@ -1,4 +1,5 @@
 from .server import app, server
+import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
@@ -33,14 +34,22 @@ codes_CAS = func.getCodes(collection_fs, "Annual", "CAS")
 codes_ratios = ["DY", "EY", "ROE", "PD"]
 
 dt = datetime.now()
+app.config['suppress_callback_exceptions']=True
 
 app.layout = html.Div([
+    dcc.Tabs(id="tabs", children=[
+        dcc.Tab(label='Dashboard', value='tab-1'),
+        dcc.Tab(label='Portfolio', value='tab-2'),
+        dcc.Tab(label='Order Management', value='tab-3')
+    ]),
+    html.Div(id='tabs-content')
+])
+
+tab_1 = html.Div([
     #row1
     html.Div(
         className = "row",
         children = [
-            html.H1("Dashboard"),
-
             dcc.RadioItems(
                 id='allOrFiltered',
                 options=[
@@ -298,5 +307,19 @@ app.layout = html.Div([
         ]
     )
 ])
+
+@app.callback(dash.dependencies.Output('tabs-content', 'children'),
+              [dash.dependencies.Input('tabs', 'value')])
+def render_content(tab):
+    if tab == 'tab-1':
+        return tab_1
+    elif tab == 'tab-2':
+        return html.Div([
+            html.H3('Tab content 2')
+        ])
+    elif tab == 'tab-3':
+        return html.Div([
+            html.H3('Tab content 3')
+        ])
 
 from . import callbacks_data
