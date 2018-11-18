@@ -64,7 +64,8 @@ tab_1 = html.Div([
                 id='stock-ticker-input',
                 #options=[{'label': s[0], 'value': str(s[1])}for s in zip(tickers, tickers)],
                 value="AAPL",
-                multi=False
+                multi=False,
+                clearable=False
             ),
 
             dcc.DatePickerRange(
@@ -113,7 +114,8 @@ tab_1 = html.Div([
                         id='BAL',
                         options=[{'label': s[0], 'value': str(s[1])}for s in zip(codes_BAL["Description"].tolist(), codes_BAL["Code"].tolist())],
                         value="ATCA",
-                        multi=False
+                        multi=False,
+                        clearable=False
                         )
                     ])
             ),
@@ -127,7 +129,8 @@ tab_1 = html.Div([
                         id='INC',
                         options=[{'label': s[0], 'value': str(s[1])}for s in zip(codes_INC["Description"].tolist(), codes_INC["Code"].tolist())],
                         value="SOPI",
-                        multi=False
+                        multi=False,
+                        clearable=False
                         )
                     ])
             ),
@@ -184,7 +187,8 @@ tab_1 = html.Div([
                         id='CAS',
                         options=[{'label': s[0], 'value': str(s[1])}for s in zip(codes_CAS["Description"].tolist(), codes_CAS["Code"].tolist())],
                         value="OTLO",
-                        multi=False
+                        multi=False,
+                        clearable=False
                         )
                     ])
             ),
@@ -198,7 +202,8 @@ tab_1 = html.Div([
                         id='Key Ratios',
                         options=[{'label': s[0], 'value': str(s[1])}for s in zip(codes_ratios, codes_ratios)],
                         value="PD",
-                        multi=False
+                        multi=False,
+                        clearable=False
                         )
                     ])
             ),
@@ -269,7 +274,8 @@ tab_1 = html.Div([
                         id='FS_dropdown',
                         options=[{'label': s[0], 'value': str(s[1])}for s in zip(['BAL', 'INC', 'CAS'],['BAL', 'INC', 'CAS'])],
                         value="CAS",
-                        multi=False
+                        multi=False,
+                        clearable=False
                         )
                     ])
             ),
