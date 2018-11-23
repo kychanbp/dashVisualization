@@ -6,7 +6,7 @@ from statsmodels import regression
 import statsmodels.api as sm
 import math
 import numpy as np
-#import pymongo
+import pymongo
 
 def getPrices(collection, symbol, start, end, field):
     query = [
@@ -113,11 +113,23 @@ def getStatements(collection, symbol, start, end, period, statm):
     df = df[cols]
     return df
 
+def getPassedPortfolio(collection):
+    cur = collection.find({"Verify":1})
+    df = pd.DataFrame(list(cur))
+    try:
+        df = df.drop_duplicates(subset='Ticker', keep="last")
+    except:
+        pass
+    return df[['Ticker', 'Company Name', 'Primary Exchange', 'Verify']]
+
 """
 client = pymongo.MongoClient()
 db = client.Invest
-collection = db['FinancialStatement']
+collection = db['TargetPortfolio']
 
-print(getStatements(collection, "GE", "", "", "Annual", "BAL").to_dict('records'))
+#print(getStatements(collection, "GE", "", "", "Annual", "BAL").to_dict('records'))
 #print(getCodes(collection,"Annual", "BAL"))
+df = getPassedPortfolio(collection)
+columns=[{"name": i, "id": i} for i in df.columns]
+print(columns)
 """

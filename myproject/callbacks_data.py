@@ -13,6 +13,7 @@ from scipy import stats
 
 import pymongo
 from datetime import date
+from datetime import datetime
 
 import myproject.functions as func
 
@@ -32,8 +33,16 @@ collection_portfolio = db['TargetPortfolio']
 tickers = collection_price.distinct('Ticker')
 tickers.sort()
 
-tickers_filtered = collection_portfolio.distinct('Ticker')
-tickers_filtered.sort()
+def filteredTickers(db, date):
+    query = [
+        {"$match":{"date":date}},
+        {"$match":{"$or":[{"Verify":None}, {"Verify":0}]}}]
+    cur = db.aggregate(query)
+    df = pd.DataFrame(list(cur))
+    tickers = df['Ticker'].tolist()
+    tickers = list(set(tickers))
+    tickers.sort()
+    return tickers
 
 #get codes
 codes_BAL = func.getCodes(collection_fs, "Annual", "BAL")
@@ -43,13 +52,20 @@ codes_ratios = ["DY", "EY", "ROE", "PD"]
 
 @app.callback(
     dash.dependencies.Output("stock-ticker-input",'options'),
-    [dash.dependencies.Input('allOrFiltered', 'value')])
-def update_dropdown(option):
+    [dash.dependencies.Input('allOrFiltered', 'value'),
+    dash.dependencies.Input('freezeDate', 'date')])
+def update_dropdown(option, freezeDate):
+    freezeDate = datetime.strptime(freezeDate, '%Y-%m-%d')
     opt = []
     if option == "All":
         opt = [{'label': s[0], 'value': str(s[1])}for s in zip(tickers, tickers)]
     elif option == "Filtered":
-        opt = [{'label': s[0], 'value': str(s[1])}for s in zip(tickers_filtered, tickers_filtered)]
+        try:
+            tickers_filtered = filteredTickers(collection_portfolio, freezeDate)
+            opt = [{'label': s[0], 'value': str(s[1])}for s in zip(tickers_filtered, tickers_filtered)]
+        except:
+            tickers_filtered = ''
+            opt = [{'label': s[0], 'value': str(s[1])}for s in zip(tickers_filtered, tickers_filtered)]
     return opt
 
 @app.callback(
@@ -379,3 +395,55 @@ def historical_price(ticker, start_date, end_date):
     fig = dict(data=data, layout = layout)
 
     return fig
+
+
+@app.callback(
+    dash.dependencies.Output('output-container-button', 'children'),
+    [dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('passed', 'n_clicks'),
+    dash.dependencies.Input('freezeDate', 'date')])
+def passed(ticker, n_clicks, freezeDate):
+    if (n_clicks  >= 1) and (ticker is not None):
+        freezeDate = datetime.strptime(freezeDate, '%Y-%m-%d')
+        collection_portfolio.update_many({"Ticker":ticker}, {"$set" : {"Verify":1}})
+        cur = collection_portfolio.aggregate([
+            {"$match":{"Ticker":ticker}},{"$match":{"date":freezeDate}},{"$project":{"Verify":"$Verify"}},{"$limit":1}
+        ])
+        
+
+@app.callback(
+    dash.dependencies.Output('output-container-button-2', 'children'),
+    [ dash.dependencies.Input('stock-ticker-input', 'value'),
+    dash.dependencies.Input('notPassed', 'n_clicks'),
+    dash.dependencies.Input('freezeDate', 'date')])
+def notPassed(ticker ,n_clicks, freezeDate):
+    freezeDate = datetime.strptime(freezeDate, '%Y-%m-%d')
+    if (n_clicks >= 1) and (ticker is not None):
+        collection_portfolio.update_many({"Ticker":ticker}, {"$set" : {"Verify":0}})
+        cur = collection_portfolio.aggregate([
+            {"$match":{"Ticker":ticker}},{"$match":{"date":freezeDate}},{"$project":{"Verify":"$Verify"}},{"$limit":1}
+        ])
+
+
+#tab2
+#
+#
+@app.callback(
+    dash.dependencies.Output("verifiedPort",'columns'),
+    [dash.dependencies.Input('dateRange_portfolio', 'start_date'),
+    dash.dependencies.Input('dateRange_portfolio', 'end_date')])
+def update_porfolio_columns(start_date, end_date):
+    #connect  to database
+    df = func.getPassedPortfolio(collection_portfolio)
+    columns=[{"name": i, "id": i} for i in df.columns]
+    return columns
+
+@app.callback(
+    dash.dependencies.Output("verifiedPort",'data'),
+    [dash.dependencies.Input('dateRange_portfolio', 'start_date'),
+    dash.dependencies.Input('dateRange_portfolio', 'end_date')])
+def update_portfolio_rows(start_date, end_date):
+    df = func.getPassedPortfolio(collection_portfolio)
+    data=df.to_dict('records')
+    return data
+    

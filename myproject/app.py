@@ -35,12 +35,14 @@ codes_ratios = ["DY", "EY", "ROE", "PD"]
 
 dt = datetime.now()
 app.config['suppress_callback_exceptions']=True
+import pandas as pd
+df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv')
 
 app.layout = html.Div([
     dcc.Tabs(id="tabs", children=[
         dcc.Tab(label='Dashboard', value='tab-1'),
-        dcc.Tab(label='Portfolio', value='tab-2'),
-        dcc.Tab(label='Order Management', value='tab-3')
+        dcc.Tab(label='Order Management', value='tab-2'),
+        dcc.Tab(label='Portfolio', value='tab-3')
     ]),
     html.Div(id='tabs-content')
 ])
@@ -73,8 +75,23 @@ tab_1 = html.Div([
                 display_format='Y-M-D',
                 start_date = date(dt.year, dt.month, dt.day)- timedelta(days=365.24),
                 end_date = date(dt.year, dt.month, dt.day)
-            )
+            ),
         ]
+    ),
+
+    html.Div(
+            className = "Row",
+            children = [
+                html.Div(
+                    className = "col",
+                    children = [
+                        dcc.DatePickerSingle(
+                            date=date(dt.year, dt.month, dt.day),
+                            id='freezeDate',
+                            display_format='Y-M-D')
+                    ]
+                )
+            ]
     ),
     
     #row 2
@@ -311,7 +328,51 @@ tab_1 = html.Div([
             )
             
         ]
-    )
+    ),
+
+    #row
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(className = "three columns", children = html.Button('PASSED', id='passed')),
+            html.Div(className = "three columns", children = html.Button('NOT PASSED', id='notPassed'))
+        ]
+    ),
+
+    html.Div(id='output-container-button', children = 'Pending Verification'),
+    html.Div(id='output-container-button-2', children = 'Pending Verification'),
+])
+
+tab_2 = html.Div([
+    html.Div(
+        className = "row",
+        children = [
+            dcc.DatePickerRange(
+                id='dateRange_portfolio',
+                display_format='Y-M-D',
+                start_date = date(dt.year, dt.month, dt.day),
+                end_date = date(dt.year, dt.month, dt.day)
+            ),
+        ]
+    ),
+
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(
+                className="twlve columns",
+                children = html.Div([
+                    dash_table.DataTable(
+                        id = 'verifiedPort',
+                        #columns=[{"name": i, "id": i} for i in df.columns],
+                        #data=df.to_dict("rows")
+                        )
+                    ]
+                )
+            )
+            
+        ]
+    ),
 ])
 
 @app.callback(dash.dependencies.Output('tabs-content', 'children'),
@@ -320,9 +381,7 @@ def render_content(tab):
     if tab == 'tab-1':
         return tab_1
     elif tab == 'tab-2':
-        return html.Div([
-            html.H3('Tab content 2')
-        ])
+        return tab_2
     elif tab == 'tab-3':
         return html.Div([
             html.H3('Tab content 3')
