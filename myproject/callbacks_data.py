@@ -36,7 +36,7 @@ tickers.sort()
 def filteredTickers(db, date):
     query = [
         {"$match":{"date":date}},
-        {"$match":{"$or":[{"Verify":None}, {"Verify":0}]}}]
+        {"$match":{"$or":[{"Verify":None}]}}]
     cur = db.aggregate(query)
     df = pd.DataFrame(list(cur))
     tickers = df['Ticker'].tolist()
