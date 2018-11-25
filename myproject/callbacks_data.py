@@ -30,6 +30,7 @@ collection_price = db['DailyPrice']
 collection_fs = db['FinancialStatement']
 collection_ratios = db['KeyRatios']
 collection_portfolio = db['TargetPortfolio']
+collection_actualPortfolio = db['ActualPortfolio']
 
 #get distinct ticker
 tickers = collection_price.distinct('Ticker')
@@ -465,5 +466,26 @@ def current_porfolio_columns(n_clicks):
     [dash.dependencies.Input('Refresh', 'n_clicks')])
 def current_portfolio_rows(n_clicks):
     df = pd.read_csv("currentPortfolio.csv")
+    data=df.to_dict('records')
+    return data
+
+@app.callback(
+    dash.dependencies.Output("historicalPositions",'columns'),
+    [dash.dependencies.Input('stock-ticker-input-positions', 'value'),
+    dash.dependencies.Input('dateRange_positions', 'start_date'),
+    dash.dependencies.Input('dateRange_positions', 'end_date')])
+def update_actualPorfolio_columns(symbol, start_date, end_date):
+    #connect  to database
+    df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
+    columns=[{"name": i, "id": i} for i in df.columns]
+    return columns
+
+@app.callback(
+    dash.dependencies.Output("historicalPositions",'data'),
+    [dash.dependencies.Input('stock-ticker-input-positions', 'value'),
+    dash.dependencies.Input('dateRange_positions', 'start_date'),
+    dash.dependencies.Input('dateRange_positions', 'end_date')])
+def update_actualPorfolio_rows(symbol, start_date, end_date):
+    df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
     data=df.to_dict('records')
     return data

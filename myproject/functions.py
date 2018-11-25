@@ -122,17 +122,24 @@ def getPassedPortfolio(collection):
         pass
     return df[['Ticker', 'Company Name', 'Primary Exchange', 'Verify']]
 
+def getHistoricalPortfolio(collection, symbol, start, end):
+    query = [
+        {"$match":{"Ticker":symbol}},
+        {"$match":{"date":{"$lte": datetime.strptime(end, '%Y-%m-%d'), "$gte": datetime.strptime(start, '%Y-%m-%d')}}},
+    ]
 
+
+    cur = collection.aggregate(query)
+    df = pd.DataFrame(list(cur))
+
+    df = df[['date','account','Ticker','Exchange','position','marketPrice','averageCost','unrealizedPNL','realizedPNL']]
+    return df
 
 """
 client = pymongo.MongoClient()
 db = client.Invest
-collection = db['TargetPortfolio']
+collection = db['ActualPortfolio']
 
-#print(getStatements(collection, "GE", "", "", "Annual", "BAL").to_dict('records'))
-#print(getCodes(collection,"Annual", "BAL"))
-df = getPassedPortfolio(collection)
-columns=[{"name": i, "id": i} for i in df.columns]
-print(columns)
+
+print(getHistoricalPortfolio(collection, 'GLD', '2018-01-01', '2018-11-30'))
 """
-#print(getCurrentPotfolio())

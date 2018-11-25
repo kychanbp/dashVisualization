@@ -19,6 +19,7 @@ collection_price = db['DailyPrice']
 collection_fs = db['FinancialStatement']
 collection_ratios = db['KeyRatios']
 collection_portfolio = db['TargetPortfolio']
+collection_actualPortfolio = db['ActualPortfolio']
 
 #get distinct ticker
 tickers = collection_price.distinct('Ticker')
@@ -26,6 +27,9 @@ tickers.sort()
 
 tickers_filtered = collection_portfolio.distinct('Ticker')
 tickers_filtered.sort()
+
+tickers_portfolio = collection_actualPortfolio.distinct('Ticker')
+tickers_portfolio.sort()
 
 #get codes
 codes_BAL = func.getCodes(collection_fs, "Annual", "BAL")
@@ -394,6 +398,49 @@ tab_3 = html.Div([
             )
         ]
     ),
+
+    html.Div(html.H2('Historical Positions')),
+
+    html.Div(
+        className = "row",
+        children = [
+            dcc.DatePickerRange(
+                id='dateRange_positions',
+                display_format='Y-M-D',
+                start_date = date(dt.year, dt.month, dt.day) - timedelta(days=365.24),
+                end_date = date(dt.year, dt.month, dt.day) + timedelta(days=1)
+            ),
+        ]
+    ),
+
+    html.Div(
+        className = "row",
+        children = [
+            dcc.Dropdown(
+                        id='stock-ticker-input-positions',
+                        options=[{'label': s[0], 'value': str(s[1])}for s in zip(tickers_portfolio, tickers_portfolio)],
+                        value="AAPL",
+                        multi=False,
+                        clearable=False
+            ),
+        ]
+    ),
+
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(
+                className="twlve columns",
+                children = html.Div([
+                    dash_table.DataTable(id = 'historicalPositions'),
+                    ]
+                )
+            )
+            
+        ]
+    ),
+
+
 ])
 
 @app.callback(dash.dependencies.Output('tabs-content', 'children'),
