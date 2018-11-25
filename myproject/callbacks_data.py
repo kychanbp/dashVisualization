@@ -19,6 +19,8 @@ import myproject.functions as func
 
 import colorlover as cl
 
+from subprocess import call
+
 colorscale = cl.scales['9']['qual']['Paired']
 
 #connect  to database
@@ -446,4 +448,22 @@ def update_portfolio_rows(start_date, end_date):
     df = func.getPassedPortfolio(collection_portfolio)
     data=df.to_dict('records')
     return data
-    
+
+###tab3
+@app.callback(
+    dash.dependencies.Output("currentPort",'columns'),
+    [dash.dependencies.Input('Refresh', 'n_clicks')])
+def current_porfolio_columns(n_clicks):
+    #connect  to database
+    call(["python", "myproject/getCurrentPortfolio.py"])
+    df = pd.read_csv("currentPortfolio.csv")
+    columns=[{"name": i, "id": i} for i in df.columns]
+    return columns
+
+@app.callback(
+    dash.dependencies.Output("currentPort",'data'),
+    [dash.dependencies.Input('Refresh', 'n_clicks')])
+def current_portfolio_rows(n_clicks):
+    df = pd.read_csv("currentPortfolio.csv")
+    data=df.to_dict('records')
+    return data

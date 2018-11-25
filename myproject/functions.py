@@ -122,6 +122,8 @@ def getPassedPortfolio(collection):
         pass
     return df[['Ticker', 'Company Name', 'Primary Exchange', 'Verify']]
 
+
+
 """
 client = pymongo.MongoClient()
 db = client.Invest
@@ -133,3 +135,4 @@ df = getPassedPortfolio(collection)
 columns=[{"name": i, "id": i} for i in df.columns]
 print(columns)
 """
+#print(getCurrentPotfolio())

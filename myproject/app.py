@@ -375,6 +375,27 @@ tab_2 = html.Div([
     ),
 ])
 
+tab_3 = html.Div([
+    html.Div(html.H2('Current Portfolio')),
+
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(className = "three columns", children = html.Button('Refresh', id='Refresh')),
+        ]
+    ),
+
+    html.Div(
+        className="row",
+        children = [
+            html.Div(
+                className = "twelve columns",
+                children = [dash_table.DataTable(id="currentPort")]
+            )
+        ]
+    ),
+])
+
 @app.callback(dash.dependencies.Output('tabs-content', 'children'),
               [dash.dependencies.Input('tabs', 'value')])
 def render_content(tab):
@@ -383,8 +404,6 @@ def render_content(tab):
     elif tab == 'tab-2':
         return tab_2
     elif tab == 'tab-3':
-        return html.Div([
-            html.H3('Tab content 3')
-        ])
+        return tab_3
 
 from . import callbacks_data
