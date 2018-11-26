@@ -344,18 +344,20 @@ def ratio4_box_graph(ticker, code, start_date, end_date):
     [dash.dependencies.Input('stock-ticker-input', 'value'),
     dash.dependencies.Input('FS_dropdown', 'value')])
 def update_fs_columns(ticker, statm):
-    df = func.getStatements(collection_fs, ticker, '', '', 'Annual', statm)
-    columns=[{"name": i, "id": i} for i in df.columns]
-    return columns
+    if ticker is not None:
+        df = func.getStatements(collection_fs, ticker, '', '', 'Annual', statm)
+        columns=[{"name": i, "id": i} for i in df.columns]
+        return columns
 
 @app.callback(
     dash.dependencies.Output("FS",'data'),
     [dash.dependencies.Input('stock-ticker-input', 'value'),
     dash.dependencies.Input('FS_dropdown', 'value')])
 def update_fs_rows(ticker, statm):
-    df = func.getStatements(collection_fs, ticker, '', '', 'Annual', statm)
-    data=df.to_dict('records')
-    return data
+    if ticker is not None:
+        df = func.getStatements(collection_fs, ticker, '', '', 'Annual', statm)
+        data=df.to_dict('records')
+        return data
 
 @app.callback(
     dash.dependencies.Output('HP','figure'),

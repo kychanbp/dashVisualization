@@ -445,13 +445,11 @@ tab_3 = html.Div([
         className = "row",
         children = [
             html.Div(
-                id = "Equity Curve",
                 className="six columns",
                 children = [dcc.Graph(id = 'Equity Curve')]
             ),
             
             html.Div(
-                id = "Beta",
                 className="six columns",
                 children = [dcc.Graph(id = 'return')]
             )       
