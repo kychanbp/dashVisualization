@@ -31,6 +31,7 @@ collection_fs = db['FinancialStatement']
 collection_ratios = db['KeyRatios']
 collection_portfolio = db['TargetPortfolio']
 collection_actualPortfolio = db['ActualPortfolio']
+collection_account = db['AccountSummary']
 
 #get distinct ticker
 tickers = collection_price.distinct('Ticker')
@@ -489,3 +490,32 @@ def update_actualPorfolio_rows(symbol, start_date, end_date):
     df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
     data=df.to_dict('records')
     return data
+
+@app.callback(
+    dash.dependencies.Output("Equity Curve",'figure'),
+    [dash.dependencies.Input('dateRange_positions', 'start_date'),
+    dash.dependencies.Input('dateRange_positions', 'end_date')])
+def equity_graph(start_date, end_date):
+    if start_date is not None and end_date is not None:
+        df = func.getAccoutValue(collection_account, "CashBalance")
+
+        line = go.Scatter(x=df['date'],
+                        y=df['value'],
+                        showlegend=False,
+                        mode='lines'
+                        )
+
+        data = [line]
+        layout = dict(xaxis = dict(zeroline = False,
+                                linewidth = 1,
+                                mirror = True),
+                    yaxis = dict(zeroline = False, 
+                                linewidth = 1,
+                                mirror = True),
+                    title = 'Equity Curve'
+                    )
+
+        fig = dict(data=data, layout=layout)
+    else:
+        fig = {}
+    return fig

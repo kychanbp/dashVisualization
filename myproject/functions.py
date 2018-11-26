@@ -135,6 +135,10 @@ def getHistoricalPortfolio(collection, symbol, start, end):
     df = df[['date','account','Ticker','Exchange','position','marketPrice','averageCost','unrealizedPNL','realizedPNL']]
     return df
 
+def getAccoutValue(collection, code):
+    cur = collection.find({"tag":code})
+    return pd.DataFrame(list(cur))
+
 """
 client = pymongo.MongoClient()
 db = client.Invest
