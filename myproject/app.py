@@ -419,7 +419,7 @@ tab_3 = html.Div([
             dcc.Dropdown(
                         id='stock-ticker-input-positions',
                         options=[{'label': s[0], 'value': str(s[1])}for s in zip(tickers_portfolio, tickers_portfolio)],
-                        value="AAPL",
+                        #value="AAPL",
                         multi=False,
                         clearable=False
             ),

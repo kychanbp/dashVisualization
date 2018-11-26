@@ -139,11 +139,20 @@ def getAccoutValue(collection, code):
     cur = collection.find({"tag":code})
     return pd.DataFrame(list(cur))
 
+def getReturn(collection, start):
+    query = [
+        {"$match":{"date":{"$gte": datetime.strptime(start, '%Y-%m-%d')}}},
+        {"$project":{"date":1, 'return':{ "$divide": [ { "$subtract": [ "$marketPrice", "$averageCost" ] }, "$averageCost"] }}}
+    ]
+
+    cur = collection.aggregate(query)
+    return pd.DataFrame(list(cur))
+
 """
 client = pymongo.MongoClient()
 db = client.Invest
 collection = db['ActualPortfolio']
 
-
-print(getHistoricalPortfolio(collection, 'GLD', '2018-01-01', '2018-11-30'))
+df =getReturn(collection, '2018-01-01')
+print(df['return'].tolist())
 """

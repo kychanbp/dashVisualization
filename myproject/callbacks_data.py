@@ -407,7 +407,7 @@ def historical_price(ticker, start_date, end_date):
     dash.dependencies.Input('passed', 'n_clicks'),
     dash.dependencies.Input('freezeDate', 'date')])
 def passed(ticker, n_clicks, freezeDate):
-    if (n_clicks  >= 1) and (ticker is not None):
+    if (n_clicks is not None) and (ticker is not None):
         freezeDate = datetime.strptime(freezeDate, '%Y-%m-%d')
         collection_portfolio.update_many({"Ticker":ticker}, {"$set" : {"Verify":1}})
         cur = collection_portfolio.aggregate([
@@ -422,7 +422,7 @@ def passed(ticker, n_clicks, freezeDate):
     dash.dependencies.Input('freezeDate', 'date')])
 def notPassed(ticker ,n_clicks, freezeDate):
     freezeDate = datetime.strptime(freezeDate, '%Y-%m-%d')
-    if (n_clicks >= 1) and (ticker is not None):
+    if (n_clicks is not None) and (ticker is not None):
         collection_portfolio.update_many({"Ticker":ticker}, {"$set" : {"Verify":0}})
         cur = collection_portfolio.aggregate([
             {"$match":{"Ticker":ticker}},{"$match":{"date":freezeDate}},{"$project":{"Verify":"$Verify"}},{"$limit":1}
@@ -477,9 +477,10 @@ def current_portfolio_rows(n_clicks):
     dash.dependencies.Input('dateRange_positions', 'end_date')])
 def update_actualPorfolio_columns(symbol, start_date, end_date):
     #connect  to database
-    df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
-    columns=[{"name": i, "id": i} for i in df.columns]
-    return columns
+    if symbol is not None:
+        df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
+        columns=[{"name": i, "id": i} for i in df.columns]
+        return columns
 
 @app.callback(
     dash.dependencies.Output("historicalPositions",'data'),
@@ -487,9 +488,10 @@ def update_actualPorfolio_columns(symbol, start_date, end_date):
     dash.dependencies.Input('dateRange_positions', 'start_date'),
     dash.dependencies.Input('dateRange_positions', 'end_date')])
 def update_actualPorfolio_rows(symbol, start_date, end_date):
-    df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
-    data=df.to_dict('records')
-    return data
+    if symbol is not None:
+        df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
+        data=df.to_dict('records')
+        return data
 
 @app.callback(
     dash.dependencies.Output("Equity Curve",'figure'),
@@ -498,6 +500,7 @@ def update_actualPorfolio_rows(symbol, start_date, end_date):
 def equity_graph(start_date, end_date):
     if start_date is not None and end_date is not None:
         df = func.getAccoutValue(collection_account, "CashBalance")
+        df = df[df['date']>=start_date]
 
         line = go.Scatter(x=df['date'],
                         y=df['value'],
@@ -513,6 +516,42 @@ def equity_graph(start_date, end_date):
                                 linewidth = 1,
                                 mirror = True),
                     title = 'Equity Curve'
+                    )
+
+        fig = dict(data=data, layout=layout)
+    else:
+        fig = {}
+    return fig
+
+@app.callback(
+    dash.dependencies.Output("return",'figure'),
+    [dash.dependencies.Input('dateRange_positions', 'start_date'),
+    dash.dependencies.Input('dateRange_positions', 'end_date')])
+def return_graph(start_date, end_date):
+    if start_date is not None and end_date is not None:
+        df = func.getReturn(collection_actualPortfolio, start_date)
+        X_lognorm = df['return'].tolist()
+        qq = stats.probplot(X_lognorm, dist='norm', sparams=(1))
+        x = np.array([qq[0][0][0],qq[0][0][-1]])
+        pts = go.Scatter(x=qq[0][0],
+                        y=qq[0][1], 
+                        mode = 'markers',
+                        showlegend=False
+                        )
+        line = go.Scatter(x=x,
+                        y=qq[1][1] + qq[1][0]*x,
+                        showlegend=False,
+                        mode='lines'
+                        )
+
+        data = [pts, line]
+        layout = dict(xaxis = dict(zeroline = False,
+                                linewidth = 1,
+                                mirror = True),
+                    yaxis = dict(zeroline = False, 
+                                linewidth = 1,
+                                mirror = True),
+                    title = 'QQ Plot of Return'
                     )
 
         fig = dict(data=data, layout=layout)
