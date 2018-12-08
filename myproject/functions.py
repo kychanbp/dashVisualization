@@ -151,8 +151,12 @@ def getReturn(collection, start):
 """
 client = pymongo.MongoClient()
 db = client.Invest
-collection = db['ActualPortfolio']
+collection = db['DailyPrice']
 
-df =getReturn(collection, '2018-01-01')
-print(df['return'].tolist())
+lst = {}
+df =getPrices(collection, "AAPL", "2018-01-01", "2018-11-30", 'close')
+df['close']
+lst["AAPL"] = df['close'].tolist()
+df = pd.DataFrame(lst)
+print(df)
 """
