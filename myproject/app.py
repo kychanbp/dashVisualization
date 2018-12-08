@@ -25,10 +25,10 @@ collection_actualPortfolio = db['ActualPortfolio']
 tickers = collection_price.distinct('Ticker')
 tickers.sort()
 
-tickers_filtered = collection_portfolio.distinct('Ticker')
+tickers_filtered = collection_portfolio.distinct('Ticker') #this is the ticker of filtered target portfolio
 tickers_filtered.sort()
 
-tickers_portfolio = collection_actualPortfolio.distinct('Ticker')
+tickers_portfolio = collection_actualPortfolio.distinct('Ticker') #this is the ticker of actual portfolio
 tickers_portfolio.sort()
 
 #get codes
@@ -39,9 +39,8 @@ codes_ratios = ["DY", "EY", "ROE", "PD"]
 
 dt = datetime.now()
 app.config['suppress_callback_exceptions']=True
-import pandas as pd
-df = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/solar.csv')
 
+#three tabs: Dashboard, order Management, and Portfolio
 app.layout = html.Div([
     dcc.Tabs(id="tabs", children=[
         dcc.Tab(label='Dashboard', value='tab-1'),
@@ -51,8 +50,8 @@ app.layout = html.Div([
     html.Div(id='tabs-content')
 ])
 
+#tab 1 content
 tab_1 = html.Div([
-    #row1
     html.Div(
         className = "row",
         children = [
@@ -83,6 +82,7 @@ tab_1 = html.Div([
         ]
     ),
 
+    # date of the target portfolio date. Needed to be freezed because target portfolio changes everyday
     html.Div(
             className = "Row",
             children = [
@@ -98,7 +98,7 @@ tab_1 = html.Div([
             ]
     ),
     
-    #row 2
+    # plots
     html.Div(
         className = "row",
         children = [
@@ -158,8 +158,7 @@ tab_1 = html.Div([
         ]
     ),
     
-        
-    #row3 (plots)
+    
     html.Div(
         className = "row",
         children = [
@@ -318,7 +317,7 @@ tab_1 = html.Div([
         ]
     ),
 
-    #row5
+    #historical price
     html.Div(
         className = "row",
         children = [
@@ -334,7 +333,7 @@ tab_1 = html.Div([
         ]
     ),
 
-    #row
+    #verification button
     html.Div(
         className = "row",
         children = [
@@ -347,6 +346,7 @@ tab_1 = html.Div([
     html.Div(id='output-container-button-2', children = 'Pending Verification'),
 ])
 
+#tab 2
 tab_2 = html.Div([
     html.Div(
         className = "row",
@@ -354,7 +354,7 @@ tab_2 = html.Div([
             dcc.DatePickerRange(
                 id='dateRange_portfolio',
                 display_format='Y-M-D',
-                start_date = date(dt.year, dt.month, dt.day),
+                start_date = date(dt.year, dt.month, dt.day) - timedelta(days=365.24),
                 end_date = date(dt.year, dt.month, dt.day)
             ),
         ]
@@ -377,8 +377,56 @@ tab_2 = html.Div([
             
         ]
     ),
+
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(
+                className = "nine columns",
+                children = html.Div([
+                    dcc.Graph(id = 'correlation map')
+                ])
+            )
+        ]
+    ),
+
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(className = "three columns", children = html.Button('Calculate Order Amount', id='calAmount')),
+        ]
+    ),
+
+    html.Div(
+        className="row",
+        children = [
+            html.Div(
+                className = "five columns",
+                children = [dash_table.DataTable(id="orderAmount")]
+            )
+        ]
+    ),
+
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(className = "three columns", children = html.Button('Refresh', id='Refresh_2'))
+        ]
+    ),
+
+    html.Div(id='output-container-button-4', children = 'Pending Calculation'),
+
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(className = "three columns", children = html.Button('Execute', id='execute')),
+        ]
+    ),
+
+    html.Div(id='output-container-button-3', children = '')
 ])
 
+#tab 3
 tab_3 = html.Div([
     html.Div(html.H2('Current Portfolio')),
 
