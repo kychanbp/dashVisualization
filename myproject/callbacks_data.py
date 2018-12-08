@@ -116,8 +116,12 @@ def QQ_graph(ticker, start_date, end_date):
     dash.dependencies.Input('my-date-picker-range', 'end_date')])
 def Beta_graph(ticker, start_date, end_date):
     if start_date is not None and end_date is not None:
-        stock = func.getPrices(collection_price, ticker, start_date, end_date, "close")['close'].pct_change()[1:].values
-        SPY = func.getPrices(collection_price, "SPY", start_date, end_date, "close")['close'].pct_change()[1:].values
+        stock = func.getPrices(collection_price, ticker, start_date, end_date, "close")
+        stock = stock.drop_duplicates()
+        stock = stock['close'].pct_change()[1:].values
+        SPY = func.getPrices(collection_price, "SPY", start_date, end_date, "close")
+        SPY = SPY.drop_duplicates()
+        SPY = SPY['close'].pct_change()[1:].values
         try:
             p = func.linreg(stock, SPY)
 
@@ -367,6 +371,7 @@ def update_fs_rows(ticker, statm):
 def historical_price(ticker, start_date, end_date):
 
     dff = func.getPrices_all(collection_price, ticker, start_date, end_date)
+    dff = dff.drop_duplicates()
 
     candlestick = {
         'x': dff['date'],
@@ -452,6 +457,73 @@ def update_portfolio_rows(start_date, end_date):
     df = func.getPassedPortfolio(collection_portfolio)
     data=df.to_dict('records')
     return data
+
+@app.callback(
+    dash.dependencies.Output("correlation map",'figure'),
+    [dash.dependencies.Input('dateRange_portfolio', 'start_date'),
+    dash.dependencies.Input('dateRange_portfolio', 'end_date')])
+def update_correlation_map(start_date, end_date):
+    df = func.getPassedPortfolio(collection_portfolio)
+
+    result = pd.DataFrame()
+    for index, row in df.iterrows():
+        lst = {}
+        symbol = row['Ticker']
+        price = func.getPrices(collection_price, symbol, start_date, end_date, 'close')
+        price = price.drop_duplicates()
+
+        try:
+            lst[symbol] = price['close'].tolist()
+            result = pd.concat([result, pd.DataFrame(lst)], axis = 1)
+        except:
+            result = pd.DataFrame(lst)
+    
+    cor = result.corr()
+    arr = cor.values
+
+    trace = go.Heatmap(z=arr, x = cor.columns, y = cor.columns)
+
+    layout =  dict(height = 800, title = 'Stock Correlation')
+    data=[trace]
+    fig = dict(data = data, layout = layout)
+
+    return fig
+
+@app.callback(
+    dash.dependencies.Output("output-container-button-4",'children'),
+    [dash.dependencies.Input('calAmount', 'n_clicks')])
+def orderAmount(n_clicks):
+    #connect  to database
+    if n_clicks is not None:
+        call(["python", "myproject/order_amount.py"])
+        return "Please Refresh"
+
+@app.callback(
+    dash.dependencies.Output("orderAmount",'columns'),
+    [dash.dependencies.Input('Refresh_2', 'n_clicks')])
+def orderAmount_columns_refresh(n_clicks):
+    #connect  to database
+    df = pd.read_csv("orderAmount.csv")
+    columns=[{"name": i, "id": i} for i in df.columns]
+    return columns
+
+@app.callback(
+    dash.dependencies.Output("orderAmount",'data'),
+    [dash.dependencies.Input('Refresh_2', 'n_clicks')])
+def orderAmount_rows_refresh(n_clicks):
+    df = pd.read_csv("orderAmount.csv")
+    data=df.to_dict('records')
+    return data
+
+@app.callback(
+    dash.dependencies.Output("output-container-button-3",'children'),
+    [dash.dependencies.Input('execute', 'n_clicks')])
+def execute(n_clicks):
+    if n_clicks is not None:
+        call(["python", "myproject/execute.py"])
+        return "Executed"
+
+
 
 ###tab3
 @app.callback(
