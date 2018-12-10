@@ -12,11 +12,13 @@ def order(df):
         amount = row['order_size']
         
         if amount >0:
-            order = MarketOrder('BUY', amount)
-            ib.placeOrder(contract, order)
+            order = MarketOrder('BUY', abs(amount))
+            trade = ib.placeOrder(contract, order)
+            #print(trade.log)
         elif amount <0:
-            order = MarketOrder('SELL', amount)
-            ib.placeOrder(contract, order)
+            order = MarketOrder('SELL', abs(amount))
+            trade = ib.placeOrder(contract, order)
+            #print(trade.log)
         else:
             print(amount)
 
