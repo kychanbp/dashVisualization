@@ -573,7 +573,7 @@ def update_actualPorfolio_rows(symbol, start_date, end_date):
     dash.dependencies.Input('dateRange_positions', 'end_date')])
 def equity_graph(start_date, end_date):
     if start_date is not None and end_date is not None:
-        df = func.getAccoutValue(collection_account, "CashBalance")
+        df = func.getAccoutValue(collection_account, "NetLiquidation")
         df = df[df['date']>=start_date]
 
         line = go.Scatter(x=df['date'],
