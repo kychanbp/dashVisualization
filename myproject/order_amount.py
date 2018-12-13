@@ -37,7 +37,11 @@ def get_latest_portf(db):
     return df
 
 def order_target_percent(stocks, current_positions, size):
-    current_positions['Symbol'] = current_positions['contract'].apply(lambda x: x.symbol)
+    try:
+        current_positions['Symbol'] = current_positions['contract'].apply(lambda x: x.symbol)
+    except:
+        current_positions = pd.DataFrame(columns = ['Symbol'])
+  
     avgsize = size/(len(stocks))
 
     #get targeted symbol which also exits in current positions
@@ -92,7 +96,7 @@ def order_target_percent(stocks, current_positions, size):
 
         print("Removing {}".format(symbol))
 
-    for index, row in stocks[stocks.index.isin(target_side)].iterrows():
+    for index, row in stocks[stocks['Ticker'].isin(target_side)].iterrows():
 
         contract = Stock(row['Ticker'], "SMART", "USD", primaryExchange= row['Primary Exchange'])
         ib.qualifyContracts(contract)
@@ -111,7 +115,7 @@ def order_target_percent(stocks, current_positions, size):
         try:
             order_size = int(avgsize/data)
         except:
-            order_size = (avgsize/data) -position
+            order_size = avgsize/data
         temp["Symbol"] = symbol
         temp["Exchange"] = exchange
         temp["order_size"] = order_size
@@ -127,6 +131,8 @@ df_positions = pd.DataFrame(ib.positions())
 #print(df_positions)
 portfolio = func.getPassedPortfolio(collection_portfolio)
 #print(portfolio)
-order_cal = order_target_percent(portfolio, df_positions, 100000)
+amount = [v for v in ib.accountValues() if v.tag == 'NetLiquidation'][0].value
+amount = float(amount)
+order_cal = order_target_percent(portfolio, df_positions, amount *0.9)
 
 order_cal.to_csv("orderAmount.csv", index=False)
