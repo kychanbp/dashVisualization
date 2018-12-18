@@ -576,20 +576,49 @@ def equity_graph(start_date, end_date):
         df = func.getAccoutValue(collection_account, "NetLiquidation")
         df = df[df['date']>=start_date]
 
+        start_date = df['date'].tolist()
+        start_date.sort()
+        start_date = start_date[-5].strftime('%Y-%m-%d %H:%M:%S.%f')
+        start_date = start_date.split(" ")[0]
+        #print(start_date)
+
+        spy = func.getPrices(collection_price, 'SPY', start_date, end_date, 'close')
+        spy = spy.drop_duplicates()
+
         line = go.Scatter(x=df['date'],
                         y=df['value'],
-                        showlegend=False,
-                        mode='lines'
+                        showlegend=True,
+                        mode='lines',
+                        name='Equity Curve'
                         )
 
-        data = [line]
+        line_spy = go.Scatter(x=spy['date'],
+                        y=spy['close'],
+                        showlegend=True,
+                        mode='lines',
+                        yaxis='y2',
+                        name='SPY'
+                        )
+        
+        data = [line, line_spy]
         layout = dict(xaxis = dict(zeroline = False,
                                 linewidth = 1,
                                 mirror = True),
+                    
                     yaxis = dict(zeroline = False, 
                                 linewidth = 1,
-                                mirror = True),
-                    title = 'Equity Curve'
+                                mirror = True,
+                                type = 'log',
+                                ),
+                    yaxis2 = dict(zeroline = False, 
+                                linewidth = 1,
+                                mirror = True,
+                                overlaying='y',
+                                side='right',
+                                type = 'log',
+                                ),
+                    
+                    title = 'Equity Curve V.S. SPY on Log Scale'
                     )
 
         fig = dict(data=data, layout=layout)
@@ -629,6 +658,52 @@ def return_graph(start_date, end_date):
                     )
 
         fig = dict(data=data, layout=layout)
+    else:
+        fig = {}
+    return fig
+
+@app.callback(
+    dash.dependencies.Output("ReturnSPY",'figure'),
+    [dash.dependencies.Input('dateRange_positions', 'start_date'),
+    dash.dependencies.Input('dateRange_positions', 'end_date')])
+def returnVSSPY_graph(start_date, end_date):
+    if start_date is not None and end_date is not None:
+        df = func.getAccoutValue(collection_account, "NetLiquidation")
+        df = df[df['date']>=start_date]
+
+        start_date = df['date'].tolist()
+        start_date.sort()
+        start_date = start_date[-5].strftime('%Y-%m-%d %H:%M:%S.%f')
+        start_date = start_date.split(" ")[0]
+        #print(start_date)
+
+        spy = func.getPrices(collection_price, 'SPY', start_date, end_date, 'close')
+        spy = spy.drop_duplicates()
+
+        bar = go.Bar(x=df['date'].tolist(),
+                    y=pd.to_numeric(df['value']).pct_change()[1:].values,
+                    name = 'Equity'
+                    )
+
+
+        bar_spy = go.Bar(x=spy['date'].tolist(),
+                    y=spy['close'].pct_change()[1:].values,
+                    name = 'SPY'
+                    )
+
+        data = [bar, bar_spy]
+
+        layout = dict(xaxis = dict(zeroline = False,
+                                linewidth = 1,
+                                mirror = True),
+                    yaxis = dict(zeroline = False, 
+                                linewidth = 1,
+                                mirror = True),
+                    title = 'Return V.S SPY'
+                    )
+                
+        fig = dict(data=data, layout = layout)
+        
     else:
         fig = {}
     return fig
