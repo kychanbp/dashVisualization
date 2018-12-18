@@ -504,6 +504,17 @@ tab_3 = html.Div([
         ]
     ),
 
+    #row 2
+    html.Div(
+        className = "row",
+        children = [
+            html.Div(
+                className="six columns",
+                children = [dcc.Graph(id = 'ReturnSPY')]
+            ),     
+        ]
+    ),
+
 
 ])
 
