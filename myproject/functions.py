@@ -153,10 +153,9 @@ client = pymongo.MongoClient()
 db = client.Invest
 collection = db['DailyPrice']
 
-lst = {}
-df =getPrices(collection, "AAPL", "2018-01-01", "2018-11-30", 'close')
-df['close']
-lst["AAPL"] = df['close'].tolist()
-df = pd.DataFrame(lst)
-print(df)
+
+spy = getPrices(collection, 'SPY', '2018-12-14', '2018-12-19', 'close')
+spy = spy.drop_duplicates()
+print(spy['close'].pct_change()[1:].values)
+print(spy['date'].tolist())
 """
