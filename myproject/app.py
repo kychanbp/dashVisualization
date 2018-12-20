@@ -455,7 +455,7 @@ tab_3 = html.Div([
             dcc.DatePickerRange(
                 id='dateRange_positions',
                 display_format='Y-M-D',
-                start_date = date(dt.year, dt.month, dt.day) - timedelta(days=365.24),
+                start_date = date(dt.year, dt.month, dt.day) - timedelta(days=7),
                 end_date = date(dt.year, dt.month, dt.day) + timedelta(days=1)
             ),
         ]
