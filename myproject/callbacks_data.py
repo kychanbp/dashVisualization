@@ -14,6 +14,7 @@ from scipy import stats
 import pymongo
 from datetime import date
 from datetime import datetime
+from datetime import timedelta
 
 import myproject.functions as func
 
@@ -660,7 +661,8 @@ def returnVSSPY_graph(start_date, end_date):
         spy = func.getPrices(collection_price, 'SPY', start_date, end_date, 'close')
         spy = spy.drop_duplicates()
 
-        bar = go.Bar(x=df['date'].tolist()[1:],
+        #extract the date only, and row back one day becoz account value is today, price is yesterday
+        bar = go.Bar(x=df['date'].apply(lambda x: x.date() - timedelta(days = 1)).tolist()[1:],
                     y=pd.to_numeric(df['value']).pct_change()[1:],
                     name = 'Equity',
                     )
