@@ -510,6 +510,10 @@ tab_3 = html.Div([
         children = [
             html.Div(
                 className="six columns",
+                children = [dcc.Graph(id = 'ReturnDist')]),
+
+            html.Div(
+                className="six columns",
                 children = [dcc.Graph(id = 'ReturnSPY')]
             ),     
         ]
