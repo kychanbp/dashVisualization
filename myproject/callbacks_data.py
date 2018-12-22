@@ -642,6 +642,32 @@ def return_graph(start_date, end_date):
     return fig
 
 @app.callback(
+    dash.dependencies.Output("ReturnDist",'figure'),
+    [dash.dependencies.Input('dateRange_positions', 'start_date'),
+    dash.dependencies.Input('dateRange_positions', 'end_date')])
+def returnDist_graph(start_date, end_date):
+    if start_date is not None and end_date is not None:
+        df = func.getReturn(collection_actualPortfolio, start_date)
+        X_lognorm = df['return'].tolist()
+
+        violin = dict(type = 'violin',y = X_lognorm, box = dict(visible = True), meanline = dict(visible = True))
+
+        data = [violin]
+        layout = dict(xaxis = dict(zeroline = False,
+                                linewidth = 1,
+                                mirror = True),
+                    yaxis = dict(zeroline = False, 
+                                linewidth = 1,
+                                mirror = True),
+                    title = 'Violin Plot of Return'
+                    )
+
+        fig = dict(data=data, layout=layout)
+    else:
+        fig = {}
+    return fig
+
+@app.callback(
     dash.dependencies.Output("ReturnSPY",'figure'),
     [dash.dependencies.Input('dateRange_positions', 'start_date'),
     dash.dependencies.Input('dateRange_positions', 'end_date')])
