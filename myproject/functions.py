@@ -72,6 +72,7 @@ def getItems(collection, symbol, start, end, period, statm, code):
     df = pd.DataFrame(list(cursor))
     df.set_index('Ticker', inplace = True)
     df.sort_values('Date', inplace = True)
+    df.drop_duplicates(subset=['Date'], keep='first', inplace = True)
     return df[-5:]
 
 def getRatios(collection, symbol, start, end, ratio):
