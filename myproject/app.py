@@ -499,8 +499,8 @@ tab_3 = html.Div([
             
             html.Div(
                 className="six columns",
-                children = [dcc.Graph(id = 'return')]
-            )       
+                children = [dcc.Graph(id = 'ReturnSPY')]
+            ),     
         ]
     ),
 
@@ -510,12 +510,7 @@ tab_3 = html.Div([
         children = [
             html.Div(
                 className="six columns",
-                children = [dcc.Graph(id = 'ReturnDist')]),
-
-            html.Div(
-                className="six columns",
-                children = [dcc.Graph(id = 'ReturnSPY')]
-            ),     
+                children = [dcc.Graph(id = 'ReturnDist')]),     
         ]
     ),
 
