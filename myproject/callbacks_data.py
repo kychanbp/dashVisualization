@@ -577,16 +577,29 @@ def equity_graph(start_date, end_date):
         df = func.getAccoutValue(collection_account, "NetLiquidation")
         df = df[df['date']>=start_date]
 
-
-        line = go.Scatter(x=df['date'],
+        df_2=func.getPrices(collection_price, 'SPY', start_date, end_date, 'close')
+        
+        amount = float(df.iloc[0]['value'])
+        price = float(df_2.iloc[0]['close'])
+        shares = amount/price
+        
+        #extract the date only, and row back one day becoz account value is today, price is yesterday
+        line = go.Scatter(x=df['date'].apply(lambda x: x.date() - timedelta(days = 1)).tolist(),
                         y=df['value'],
                         showlegend=True,
                         mode='lines',
                         name='Equity Curve'
                         )
+        
+        line_spy = go.Scatter(x=df_2['date'],
+                        y = df_2['close']*shares,
+                        showlegend=True,
+                        mode='lines',
+                        name='SPY'
+                        )
 
         
-        data = [line]
+        data = [line, line_spy]
         layout = dict(xaxis = dict(zeroline = False,
                                 linewidth = 1,
                                 mirror = True),
@@ -598,68 +611,6 @@ def equity_graph(start_date, end_date):
                                 ),
                     
                     title = 'Equity Curve'
-                    )
-
-        fig = dict(data=data, layout=layout)
-    else:
-        fig = {}
-    return fig
-
-@app.callback(
-    dash.dependencies.Output("return",'figure'),
-    [dash.dependencies.Input('dateRange_positions', 'start_date'),
-    dash.dependencies.Input('dateRange_positions', 'end_date')])
-def return_graph(start_date, end_date):
-    if start_date is not None and end_date is not None:
-        df = func.getReturn(collection_actualPortfolio, start_date)
-        X_lognorm = df['return'].tolist()
-        qq = stats.probplot(X_lognorm, dist='norm', sparams=(1))
-        x = np.array([qq[0][0][0],qq[0][0][-1]])
-        pts = go.Scatter(x=qq[0][0],
-                        y=qq[0][1], 
-                        mode = 'markers',
-                        showlegend=False
-                        )
-        line = go.Scatter(x=x,
-                        y=qq[1][1] + qq[1][0]*x,
-                        showlegend=False,
-                        mode='lines'
-                        )
-
-        data = [pts, line]
-        layout = dict(xaxis = dict(zeroline = False,
-                                linewidth = 1,
-                                mirror = True),
-                    yaxis = dict(zeroline = False, 
-                                linewidth = 1,
-                                mirror = True),
-                    title = 'QQ Plot of Return'
-                    )
-
-        fig = dict(data=data, layout=layout)
-    else:
-        fig = {}
-    return fig
-
-@app.callback(
-    dash.dependencies.Output("ReturnDist",'figure'),
-    [dash.dependencies.Input('dateRange_positions', 'start_date'),
-    dash.dependencies.Input('dateRange_positions', 'end_date')])
-def returnDist_graph(start_date, end_date):
-    if start_date is not None and end_date is not None:
-        df = func.getReturn(collection_actualPortfolio, start_date)
-        X_lognorm = df['return'].tolist()
-
-        violin = dict(type = 'violin',y = X_lognorm, box = dict(visible = True), meanline = dict(visible = True))
-
-        data = [violin]
-        layout = dict(xaxis = dict(zeroline = False,
-                                linewidth = 1,
-                                mirror = True),
-                    yaxis = dict(zeroline = False, 
-                                linewidth = 1,
-                                mirror = True),
-                    title = 'Violin Plot of Return'
                     )
 
         fig = dict(data=data, layout=layout)
@@ -710,3 +661,31 @@ def returnVSSPY_graph(start_date, end_date):
     else:
         fig = {}
     return fig
+
+@app.callback(
+    dash.dependencies.Output("ReturnDist",'figure'),
+    [dash.dependencies.Input('dateRange_positions', 'start_date'),
+    dash.dependencies.Input('dateRange_positions', 'end_date')])
+def returnDist_graph(start_date, end_date):
+    if start_date is not None and end_date is not None:
+        spy = func.getPrices(collection_price, 'SPY', start_date, end_date, 'close')
+        spy = spy.drop_duplicates()
+        spy = spy['close'].pct_change()
+
+        violin = dict(type = 'violin',y = spy, box = dict(visible = True), meanline = dict(visible = True))
+
+        data = [violin]
+        layout = dict(xaxis = dict(zeroline = False,
+                                linewidth = 1,
+                                mirror = True),
+                    yaxis = dict(zeroline = False, 
+                                linewidth = 1,
+                                mirror = True),
+                    title = 'Violin Plot of Return'
+                    )
+
+        fig = dict(data=data, layout=layout)
+    else:
+        fig = {}
+    return fig
+
