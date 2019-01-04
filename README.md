@@ -8,7 +8,7 @@ The web app is specific since data is stored in a specific format, and trades ar
 
 ### Prerequisites
 
-
+The web app is a visualization and execution app. It does not responsible for downloading data and put them into [MongoDB](https://www.mongodb.com/). If you want to use the web app, please also have a look on [this repository](https://github.com/kychanbp/downloadFundamentals) for data download.
 
 ## Features
 
