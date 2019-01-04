@@ -668,13 +668,17 @@ def returnVSSPY_graph(start_date, end_date):
     dash.dependencies.Input('dateRange_positions', 'end_date')])
 def returnDist_graph(start_date, end_date):
     if start_date is not None and end_date is not None:
+        df = func.getAccoutValue(collection_account, "NetLiquidation")
+        df = df[df['date']>=start_date]
+
         spy = func.getPrices(collection_price, 'SPY', start_date, end_date, 'close')
         spy = spy.drop_duplicates()
-        spy = spy['close'].pct_change()
+        spy = spy['close'].pct_change()[1:]
 
-        violin = dict(type = 'violin',y = spy, box = dict(visible = True), meanline = dict(visible = True))
+        violin = dict(type = 'violin',y = pd.to_numeric(df['value']).pct_change()[1:], box = dict(visible = True), meanline = dict(visible = True), name = 'Portfolio')
+        violin_spy = dict(type = 'violin',y = spy, box = dict(visible = True), meanline = dict(visible = True), name = 'SPY')
 
-        data = [violin]
+        data = [violin, violin_spy]
         layout = dict(xaxis = dict(zeroline = False,
                                 linewidth = 1,
                                 mirror = True),
