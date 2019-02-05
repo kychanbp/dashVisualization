@@ -28,7 +28,7 @@ tickers.sort()
 tickers_filtered = collection_portfolio.distinct('Ticker') #this is the ticker of filtered target portfolio
 tickers_filtered.sort()
 
-tickers_portfolio = collection_actualPortfolio.distinct('Ticker') #this is the ticker of actual portfolio
+tickers_portfolio = collection_price.distinct('Ticker') #this is the ticker of actual portfolio
 tickers_portfolio.sort()
 
 #get codes
@@ -428,6 +428,20 @@ tab_2 = html.Div([
 
 #tab 3
 tab_3 = html.Div([
+    html.Div(
+        className = "row",
+        children = [
+            
+            dcc.Dropdown(
+                id='real_paper',
+                options=[{'label': 'Paper Account', 'value': 'paperAccount'},
+                        {'label': 'Live Account', 'value': 'liveAccount'},],
+                value="paperAccount",
+                multi=False,
+                clearable=False
+            )]
+    ),
+
     html.Div(html.H2('Current Portfolio')),
 
     html.Div(
