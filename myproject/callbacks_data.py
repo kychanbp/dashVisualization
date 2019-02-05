@@ -32,7 +32,9 @@ collection_fs = db['FinancialStatement']
 collection_ratios = db['KeyRatios']
 collection_portfolio = db['TargetPortfolio']
 collection_actualPortfolio = db['ActualPortfolio']
+collection_actualPortfolio_real = db['ActualPortfolio_real']
 collection_account = db['AccountSummary']
+collection_account_real = db['AccountSummary_real']
 
 #get distinct ticker
 tickers = collection_price.distinct('Ticker')
@@ -529,10 +531,14 @@ def execute(n_clicks):
 ###tab3
 @app.callback(
     dash.dependencies.Output("currentPort",'columns'),
-    [dash.dependencies.Input('Refresh', 'n_clicks')])
-def current_porfolio_columns(n_clicks):
+    [dash.dependencies.Input('Refresh', 'n_clicks'),
+    dash.dependencies.Input('real_paper', 'value')])
+def current_porfolio_columns(n_clicks, accountType):
     #connect  to database
-    call(["python", "myproject/getCurrentPortfolio.py"])
+    if accountType == 'paperAccount':
+        call(["python", "myproject/getCurrentPortfolio.py"])
+    elif accountType == 'liveAccount':
+        call(["python", "myproject/getCurrentPortfolio_real.py"])
     df = pd.read_csv("currentPortfolio.csv")
     columns=[{"name": i, "id": i} for i in df.columns]
     return columns
@@ -549,11 +555,15 @@ def current_portfolio_rows(n_clicks):
     dash.dependencies.Output("historicalPositions",'columns'),
     [dash.dependencies.Input('stock-ticker-input-positions', 'value'),
     dash.dependencies.Input('dateRange_positions', 'start_date'),
-    dash.dependencies.Input('dateRange_positions', 'end_date')])
-def update_actualPorfolio_columns(symbol, start_date, end_date):
+    dash.dependencies.Input('dateRange_positions', 'end_date'),
+    dash.dependencies.Input('real_paper', 'value')])
+def update_actualPorfolio_columns(symbol, start_date, end_date, accountType):
     #connect  to database
     if symbol is not None:
-        df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
+        if accountType == 'paperAccount':
+            df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
+        elif accountType == 'liveAccount':
+            df = func.getHistoricalPortfolio(collection_actualPortfolio_real, symbol, start_date, end_date)
         columns=[{"name": i, "id": i} for i in df.columns]
         return columns
 
@@ -561,20 +571,28 @@ def update_actualPorfolio_columns(symbol, start_date, end_date):
     dash.dependencies.Output("historicalPositions",'data'),
     [dash.dependencies.Input('stock-ticker-input-positions', 'value'),
     dash.dependencies.Input('dateRange_positions', 'start_date'),
-    dash.dependencies.Input('dateRange_positions', 'end_date')])
-def update_actualPorfolio_rows(symbol, start_date, end_date):
+    dash.dependencies.Input('dateRange_positions', 'end_date'),
+    dash.dependencies.Input('real_paper', 'value')])
+def update_actualPorfolio_rows(symbol, start_date, end_date, accountType):
     if symbol is not None:
-        df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
+        if accountType == 'paperAccount':
+            df = func.getHistoricalPortfolio(collection_actualPortfolio, symbol, start_date, end_date)
+        elif accountType == 'liveAccount':
+            df = func.getHistoricalPortfolio(collection_actualPortfolio_real, symbol, start_date, end_date)
         data=df.to_dict('records')
         return data
 
 @app.callback(
     dash.dependencies.Output("Equity Curve",'figure'),
     [dash.dependencies.Input('dateRange_positions', 'start_date'),
-    dash.dependencies.Input('dateRange_positions', 'end_date')])
-def equity_graph(start_date, end_date):
+    dash.dependencies.Input('dateRange_positions', 'end_date'),
+    dash.dependencies.Input('real_paper', 'value')])
+def equity_graph(start_date, end_date, accountType):
     if start_date is not None and end_date is not None:
-        df = func.getAccoutValue(collection_account, "NetLiquidation")
+        if accountType == 'paperAccount':
+            df = func.getAccoutValue(collection_account, "NetLiquidation")
+        elif accountType == 'liveAccount':
+            df = func.getAccoutValue(collection_account_real, "NetLiquidation")
         df = df[df['date']>=start_date]
 
         df_2=func.getPrices(collection_price, 'SPY', start_date, end_date, 'close')
@@ -621,10 +639,14 @@ def equity_graph(start_date, end_date):
 @app.callback(
     dash.dependencies.Output("ReturnSPY",'figure'),
     [dash.dependencies.Input('dateRange_positions', 'start_date'),
-    dash.dependencies.Input('dateRange_positions', 'end_date')])
-def returnVSSPY_graph(start_date, end_date):
+    dash.dependencies.Input('dateRange_positions', 'end_date'),
+    dash.dependencies.Input('real_paper', 'value')])
+def returnVSSPY_graph(start_date, end_date, accountType):
     if start_date is not None and end_date is not None:
-        df = func.getAccoutValue(collection_account, "NetLiquidation")
+        if accountType == 'paperAccount':
+            df = func.getAccoutValue(collection_account, "NetLiquidation")
+        elif accountType == 'liveAccount':
+            df = func.getAccoutValue(collection_account_real, "NetLiquidation")
         df = df[df['date']>=start_date]
 
         """
@@ -665,10 +687,14 @@ def returnVSSPY_graph(start_date, end_date):
 @app.callback(
     dash.dependencies.Output("ReturnDist",'figure'),
     [dash.dependencies.Input('dateRange_positions', 'start_date'),
-    dash.dependencies.Input('dateRange_positions', 'end_date')])
-def returnDist_graph(start_date, end_date):
+    dash.dependencies.Input('dateRange_positions', 'end_date'),
+    dash.dependencies.Input('real_paper', 'value')])
+def returnDist_graph(start_date, end_date, accountType):
     if start_date is not None and end_date is not None:
-        df = func.getAccoutValue(collection_account, "NetLiquidation")
+        if accountType == 'paperAccount':
+            df = func.getAccoutValue(collection_account, "NetLiquidation")
+        elif accountType == 'liveAccount':
+            df = func.getAccoutValue(collection_account_real, "NetLiquidation")
         df = df[df['date']>=start_date]
 
         spy = func.getPrices(collection_price, 'SPY', start_date, end_date, 'close')
